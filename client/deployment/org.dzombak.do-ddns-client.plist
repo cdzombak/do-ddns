@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>DDNS_DOMAIN</key>
+		<string>home.example.org</string>
+		<key>DDNS_SECRET</key>
+		<string>s3cr3t</string>
+		<key>DDNS_UPDATE_ENDPOINT_A</key>
+		<string>https://a.ddns.example.net</string>
+		<key>DDNS_UPDATE_ENDPOINT_AAAA</key>
+		<string>https://aaaa.ddns.example.net</string>
+	</dict>
+	<key>KeepAlive</key>
+	<dict>
+		<key>Crashed</key>
+		<false/>
+		<key>NetworkState</key>
+		<true/>
+	</dict>
+	<key>Label</key>
+	<string>org.dzombak.do-ddns-client</string>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>Program</key>
+	<string>/usr/local/bin/do-ddns-client</string>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>

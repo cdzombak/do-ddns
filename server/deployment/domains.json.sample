@@ -1,0 +1,12 @@
+{
+  "domains": [
+    {
+      "domain": "home.example.org",
+      "secret": "s3cr3t"
+    },
+    {
+      "domain": "office.example.com",
+      "secret": "p@ssw0rd"
+    }
+  ]
+}

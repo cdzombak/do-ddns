@@ -1,0 +1,18 @@
+[Unit]
+Description=DigitalOcean DDNS Update Client
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=do-ddns
+Group=do-ddns
+WorkingDirectory=/etc/do-ddns
+ExecStart=/usr/local/bin/do-ddns-client
+Restart=always
+RestartSec=3
+# By default, environment is read from /etc/do-ddns/.env; or you can set
+# variables via Environment= here.
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+.idea/
+**/.env
+**/domains.json
+out/
