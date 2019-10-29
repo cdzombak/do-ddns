@@ -159,7 +159,8 @@ func indexPost(e *Env, w http.ResponseWriter, r *http.Request) error {
 		recordName = "@"
 	}
 
-	if cached := e.UpdateCache.Get(updateRequest.Domain, recordType); cached == clientIPStr {
+	if e.UpdateCache.Get(updateRequest.Domain, recordType) == clientIPStr {
+		log.Printf("cache indicates that %s record for %s is up to date", recordType, updateRequest.Domain)
 		w.WriteHeader(204)
 		return nil
 	}
