@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -78,6 +80,14 @@ func (h headerSettingRoundTripper) RoundTrip(req *http.Request) (*http.Response,
 	return h.rt.RoundTrip(req)
 }
 
+func epochStringToTime(s string) (time.Time, error) {
+	sec, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(sec, 0), nil
+}
+
 // Do performs the given request against the DigitalOcean API.
 func (c *APIClient) Do(r *http.Request) (*http.Response, error) {
 	resp, err := c.httpClient.Do(r)
@@ -97,6 +107,16 @@ func (c *APIClient) Do(r *http.Request) (*http.Response, error) {
 			return resp, fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
 		doErr.Code = resp.StatusCode
+		if resp.StatusCode == 429 {
+			resetTime, err := epochStringToTime(resp.Header.Get("Ratelimit-Reset"))
+			resetTimeStr := ""
+			if err == nil {
+				resetTimeStr = resetTime.Format("2006-01-02 15:04:05 MST")
+			} else {
+				resetTimeStr = fmt.Sprintf("(parse error: %s)", err.Error())
+			}
+			log.Printf("Ratelimit-Limit: '%s'; Ratelimit-Remaining: '%s'; Ratelimit-Reset: '%s' (%s)\n", resp.Header.Get("Ratelimit-Limit"), resp.Header.Get("Ratelimit-Remaining"), resp.Header.Get("Ratelimit-Reset"), resetTimeStr)
+		}
 		return resp, doErr
 	}
 
