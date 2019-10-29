@@ -19,7 +19,7 @@ Create a user and group for the service to use, and create a directory in `/etc`
 ```shell script
 # as root...
 
-useradd -r -s /sbin/nologin do-ddns
+useradd -r -U -s /sbin/nologin do-ddns
 mkdir /etc/do-ddns
 chown root:do-ddns /etc/do-ddns
 ```
@@ -29,28 +29,30 @@ chown root:do-ddns /etc/do-ddns
 ```shell script
 # as root...
 
-# TODO: get latest do-ddns-server release for this arch; extract server to /usr/local/bin
+# update the version and OS/architecture in the following release URL as desired.
+curl -L --silent https://github.com/cdzombak/do-ddns/releases/download/v0.0.1/do-ddns-0.0.1-linux_amd64.tar.gz | tar -C /usr/local/bin -xzv ./do-ddns-server
 chown do-ddns:do-ddns /usr/local/bin/do-ddns-server
 chmod +x /usr/local/bin/do-ddns-server
 
-cp server/deployment/.env.sample /etc/do-ddns/.env
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/server/deployment/.env.sample > /etc/do-ddns/.env
 nano /etc/do-ddns/.env # customize as needed
 chown root:do-ddns /etc/do-ddns/.env
 
-cp server/deployment/domains.json.sample /etc/do-ddns/domains.json
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/server/deployment/domains.json.sample > /etc/do-ddns/domains.json
 nano /etc/do-ddns/domains.json # customize as needed
 chown root:do-ddns /etc/do-ddns/domains.json
 
 # Install and start the server systemd unit:
-cp server/deployment/do-ddns-server.service /etc/systemd/system
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/server/deployment/do-ddns-server.service > /etc/systemd/system/do-ddns-server.service
 systemctl daemon-reload
 systemctl enable do-ddns-server
+systemctl start do-ddns-server
 
 # Test that the service is working:
 curl -i localhost:7001/ping
 
 # Configure nginx, or whatever frontend reverse proxy you're using:
-cp server/deployment/nginx-ddns.conf /etc/nginx/sites-available/ddns.example.net
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/server/deployment/nginx-ddns.conf > /etc/nginx/sites-available/ddns.example.net
 nano /etc/nginx/sites-available/ddns.example.net # customize as needed
 ln -s /etc/nginx/sites-available/ddns.example.net /etc/nginx/sites-enabled/ddns.example.net
 
@@ -68,27 +70,30 @@ curl -i https://a.ddns.example.net/ping
 ```shell script
 # as root...
 
-# TODO: get latest do-ddns-client release for this arch; extract client to /usr/local/bin
-chown do-ddns:do-dnds /usr/local/bin/do-ddns-client
+# update the version and OS/architecture in the following release URL as desired.
+curl -L --silent https://github.com/cdzombak/do-ddns/releases/download/v0.0.1/do-ddns-0.0.1-linux_amd64.tar.gz | tar -C /usr/local/bin -xzv ./do-ddns-client
+chown do-ddns:do-ddns /usr/local/bin/do-ddns-client
 chmod +x /usr/local/bin/do-ddns-client
 
-cp client/deployment/.env.sample /etc/do-ddns/.env
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/client/deployment/.env.sample > /etc/do-ddns/.env
 nano /etc/do-ddns/.env # customize as needed
 chown root:do-ddns /etc/do-ddns/.env
 
 # Install and start the client systemd unit:
-cp client/deployment/do-ddns-client.service /etc/systemd/system
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/client/deployment/do-ddns-client.service > /etc/systemd/system/do-ddns-client.service
 systemctl daemon-reload
 systemctl enable do-ddns-client
+systemctl start do-ddns-client
 ```
 
 ### Client (macOS)
 
 ```shell script
-# TODO: get latest do-ddns-client release for this arch; extract client to /usr/local/bin
+# update the version and OS/architecture in the following release URL as desired.
+curl -L --silent https://github.com/cdzombak/do-ddns/releases/download/v0.0.1/do-ddns-0.0.1-darwin_amd64.tar.gz | tar -C /usr/local/bin -xzv ./do-ddns-client
 chmod +x /usr/local/bin/do-ddns-client
 
-cp client/deployment/org.dzombak.do-ddns-client.plist ~/Library/LaunchAgents
+curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/client/deployment/org.dzombak.do-ddns-client.plist ~/Library/LaunchAgents/org.dzombak.do-ddns-client.plist
 sudo launchctl load -w ~/Library/LaunchAgents/org.dzombak.do-ddns-client.plist
 ```
 
