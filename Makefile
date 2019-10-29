@@ -15,11 +15,13 @@ endif
 
 .PHONY: build-client
 build-client: ## Build client binaries for supported platforms.
-	mkdir -p out/linux_amd64
-	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-client ./client
+	mkdir -p out/linux_arm
 	mkdir -p out/linux_mips64
-	env GOOS=linux GOARCH=mips64 go build -o out/linux_mips64/do-ddns-client ./client
+	mkdir -p out/linux_amd64
 	mkdir -p out/darwin_amd64
+	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-client ./client
+	env GOOS=linux GOARCH=mips64 go build -o out/linux_mips64/do-ddns-client ./client
+	env GOOS=linux GOARCH=arm go build -o out/linux_arm/do-ddns-client ./client
 	env GOOS=darwin GOARCH=amd64 go build -o out/darwin_amd64/do-ddns-client ./client
 
 .PHONY: build-server
@@ -35,6 +37,7 @@ package: check-env clean build  ## Build & package client & server binaries for 
 	mkdir -p out/package
 	tar -czvf out/package/do-ddns-$$VERSION-linux_amd64.tar.gz -C out/linux_amd64 .
 	tar -czvf out/package/do-ddns-$$VERSION-linux_mips64.tar.gz -C out/linux_mips64 .
+	tar -czvf out/package/do-ddns-$$VERSION-linux_arm.tar.gz -C out/linux_arm .
 	tar -czvf out/package/do-ddns-$$VERSION-darwin_amd64.tar.gz -C out/darwin_amd64 .
 
 .PHONY: clean
