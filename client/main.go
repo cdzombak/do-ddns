@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -57,28 +58,39 @@ func update(endpoint string) error {
 	return nil
 }
 
+func runUpdates(ipv4UpdateEndpoint string, ipv6UpdateEndpoint string) {
+	errs := errset.ErrSet{}
+	if ipv4UpdateEndpoint != "" {
+		if err := update(ipv4UpdateEndpoint); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if ipv6UpdateEndpoint != "" {
+		if err := update(ipv6UpdateEndpoint); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) != 0 {
+		log.Println(errs.ReturnValue())
+	}
+}
+
 func main() {
+	var runAsService = flag.Bool("service", true, "Whether to run the client as a service. If false, only perform one update, then exit.")
+	flag.Parse()
+
 	ipv4UpdateEndpoint := os.Getenv("DDNS_UPDATE_ENDPOINT_A")
 	ipv6UpdateEndpoint := os.Getenv("DDNS_UPDATE_ENDPOINT_AAAA")
 	if ipv4UpdateEndpoint == "" && ipv6UpdateEndpoint == "" {
 		log.Fatalln("at least one of the environment variables DDNS_UPDATE_ENDPOINT_A and DDNS_UPDATE_ENDPOINT_AAAA must be set")
 	}
 
-	t := time.Tick(updateInterval)
-	for _ = range t {
-		errs := errset.ErrSet{}
-		if ipv4UpdateEndpoint != "" {
-			if err := update(ipv4UpdateEndpoint); err != nil {
-				errs = append(errs, err)
-			}
+	if *runAsService {
+		runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
+		for _ = range time.Tick(updateInterval) {
+			runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
 		}
-		if ipv6UpdateEndpoint != "" {
-			if err := update(ipv6UpdateEndpoint); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		if len(errs) != 0 {
-			log.Println(errs.ReturnValue())
-		}
+	} else {
+		runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
 	}
 }
