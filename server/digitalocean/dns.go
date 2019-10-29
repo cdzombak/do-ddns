@@ -50,11 +50,17 @@ type DNSRecordsResponse struct {
 func (c *APIClient) GetDomainRecords(domain string) ([]DNSRecord, error) {
 	retv := make([]DNSRecord, 0)
 	page := DNSRecordsResponse{}
-	for uri := APIBase + "/domains/" + url.PathEscape(domain) + "/records"; uri != ""; uri = page.Links.Pages.Next {
+	uri := APIBase + "/domains/" + url.PathEscape(domain) + "/records"
+	for uri != "" {
 		if err := c.GetURL(uri, &page); err != nil {
 			return nil, err
 		}
 		retv = append(retv, page.DomainRecords...)
+		if uri == page.Links.Pages.Last {
+			uri = ""
+		} else {
+			uri = page.Links.Pages.Last
+		}
 	}
 	return retv, nil
 }
