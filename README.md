@@ -21,7 +21,7 @@ Create a user and group for the service to use, and create a directory in `/etc`
 
 useradd -r -s /sbin/nologin do-ddns
 mkdir /etc/do-ddns
-chown root:do-dnds /etc/do-ddns
+chown root:do-ddns /etc/do-ddns
 ```
 
 ### Server (systemd)
