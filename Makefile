@@ -1,6 +1,6 @@
 SHELL:=/usr/bin/env bash
 
-default: help
+default: package
 
 # via https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
@@ -13,24 +13,28 @@ ifndef VERSION
 	$(error env variable VERSION is missing)
 endif
 
-.PHONY: client-all
-client-all: ## Build client binaries for supported platforms.
+.PHONY: build-client
+build-client: ## Build client binaries for supported platforms.
 	mkdir -p out/linux_amd64
 	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-client ./client
+	mkdir -p out/linux_mips64
+	env GOOS=linux GOARCH=mips64 go build -o out/linux_mips64/do-ddns-client ./client
 	mkdir -p out/darwin_amd64
 	env GOOS=darwin GOARCH=amd64 go build -o out/darwin_amd64/do-ddns-client ./client
 
-.PHONY: server-all
-server-all: ## Build server binaries for supported platforms.
+.PHONY: build-server
+build-server: ## Build server binaries for supported platforms.
 	mkdir -p out/linux_amd64
 	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-server ./server
-	mkdir -p out/darwin_amd64
-	env GOOS=darwin GOARCH=amd64 go build -o out/darwin_amd64/do-ddns-server ./server
+
+.PHONY: build
+build: build-client build-server  ## Build client & server binaries for supported platforms.
 
 .PHONY: package
-package: check-env client-all server-all  ## Build and package client & server binaries for supported platforms. Requires environment variable VERSION to be set.
+package: check-env clean build  ## Build & package client & server binaries for supported platforms. Requires environment variable VERSION to be set.
 	mkdir -p out/package
 	tar -czvf out/package/do-ddns-$$VERSION-linux_amd64.tar.gz -C out/linux_amd64 .
+	tar -czvf out/package/do-ddns-$$VERSION-linux_mips64.tar.gz -C out/linux_mips64 .
 	tar -czvf out/package/do-ddns-$$VERSION-darwin_amd64.tar.gz -C out/darwin_amd64 .
 
 .PHONY: clean
