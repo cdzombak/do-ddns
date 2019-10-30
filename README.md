@@ -4,7 +4,13 @@
 
 There are plenty of scripts and small programs, like [anaganisk/digitalocean-dynamic-dns-ip](https://github.com/anaganisk/digitalocean-dynamic-dns-ip), which run entirely on the client. The problem there is that the client has to have a DigitalOcean API key with `write` scope, which allows anyone with access to that client to make changes throughout your DigitalOcean account.
 
-This project's architecture is more complex, but ensures that even a shared or compromised client can only change its own dynamic DNS record and can't interfere with records for other clients or anything else in your DigitalOcean account.  
+This project's architecture is more complex, but ensures that even a shared or compromised client can only change its own dynamic DNS record and can't interfere with records for other clients or anything else in your DigitalOcean account.
+
+## Features
+
+- client/server architecture protects your DigitalOcean API key from untrustworthy clients
+- supports DynDns-style update API, for use with routers/devices with builtin DynDns support
+- supports IPv4 and IPv6
 
 ## Deployment
 
@@ -96,6 +102,21 @@ chmod +x /usr/local/bin/do-ddns-client
 curl -L --silent https://raw.githubusercontent.com/cdzombak/do-ddns/master/client/deployment/org.dzombak.do-ddns-client.plist ~/Library/LaunchAgents/org.dzombak.do-ddns-client.plist
 sudo launchctl load -w ~/Library/LaunchAgents/org.dzombak.do-ddns-client.plist
 ```
+
+## DynDns Update API Support
+
+The server also supports clients which use the [DynDns update API](https://help.dyn.com/remote-access-api/perform-update/), like routers. Configuration required on the client:
+
+- Hostname: the domain to update (eg. `home.example.net`)
+- Username: the domain to update (eg. `home.example.net`)
+- Password: the secret for the selected domain
+- Server: the server running `do-ddns-server` (eg. `a.ddns.example.net`)
+
+The DynDns API requires the client to pass its IP in the request. By default, `do-ddns-server` ignores this and uses the request's remote address. To allow using the IP passed by the client (in the `myip` query parameter), add `"allowClientIPChoice": true` to a domain's configuration.
+
+If `allowClientIPChoice` is enabled, and the client's remote address as seen by the server is a different IP version from the `myip` passed by the client, the server will use both these pieces of information to update the domain's A and AAAA records.  
+
+Note that the server does not allow updating multiple domains in one request, though the DynDns API does allow passing a comma-separated list of domains in the `hostname` field. `do-ddns-server` will return an `HTTP 400 Bad Request` in this case.
 
 ## Author
 

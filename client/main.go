@@ -72,7 +72,7 @@ func runUpdates(ipv4UpdateEndpoint string, ipv6UpdateEndpoint string) {
 			errs = append(errs, err)
 		}
 	}
-	if len(errs) != 0 {
+	if len(errs) > 0 {
 		log.Println(errs.ReturnValue())
 	}
 }

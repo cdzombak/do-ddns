@@ -6,7 +6,8 @@
     },
     {
       "domain": "office.example.com",
-      "secret": "p@ssw0rd"
+      "secret": "p@ssw0rd",
+      "allowClientIPChoice": true
     }
   ]
 }
