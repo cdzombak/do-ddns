@@ -107,6 +107,8 @@ func (c *APIClient) UpdateRecords(rootDomain string, recordName string, recordTy
 	}
 
 	if foundRecords == 0 {
+		// TODO(cdzombak): create a record, as required.
+		//                 https://github.com/cdzombak/do-ddns/issues/1
 		return NoMatchingRecordsFoundErr
 	}
 
