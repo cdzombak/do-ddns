@@ -10,19 +10,19 @@ help:
 .PHONY: check-env
 check-env:
 ifndef VERSION
-	$(error env variable VERSION is missing)
+	$(error env variable VERSION is missing (set it to a string like "1.0.1"))
 endif
 
 .PHONY: build-client
-build-client: ## Build client binaries for supported platforms.
+build-client: check-env ## Build client binaries for supported platforms.
 	mkdir -p out/linux_arm
 	mkdir -p out/linux_mips64
 	mkdir -p out/linux_amd64
 	mkdir -p out/darwin_amd64
-	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-client ./client
-	env GOOS=linux GOARCH=mips64 go build -o out/linux_mips64/do-ddns-client ./client
-	env GOOS=linux GOARCH=arm go build -o out/linux_arm/do-ddns-client ./client
-	env GOOS=darwin GOARCH=amd64 go build -o out/darwin_amd64/do-ddns-client ./client
+	env GOOS=linux GOARCH=amd64 go build -ldflags "-X main.BUILD_VERSION=$$VERSION" -o out/linux_amd64/do-ddns-client ./client
+	env GOOS=linux GOARCH=mips64 go build -ldflags "-X main.BUILD_VERSION=$$VERSION" -o out/linux_mips64/do-ddns-client ./client
+	env GOOS=linux GOARCH=arm go build -ldflags "-X main.BUILD_VERSION=$$VERSION" -o out/linux_arm/do-ddns-client ./client
+	env GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.BUILD_VERSION=$$VERSION" -o out/darwin_amd64/do-ddns-client ./client
 
 .PHONY: build-server
 build-server: ## Build server binaries for supported platforms.

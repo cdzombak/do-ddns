@@ -20,6 +20,7 @@ type DomainUpdateRequest struct {
 }
 
 const updateInterval = 1 * time.Minute
+var BUILD_VERSION = "dev"
 
 func mustGetenv(key string) string {
 	retv := os.Getenv(key)
@@ -44,6 +45,7 @@ func update(endpoint string) error {
 		log.Fatalf("failed to build update request: %s", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "org.dzombak.do-ddns-client/"+BUILD_VERSION)
 
 	const updateTimeout = 10 * time.Second
 	client := &http.Client{Timeout: updateTimeout}
