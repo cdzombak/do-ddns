@@ -19,7 +19,7 @@ type DomainUpdateRequest struct {
 	Secret string `json:"secret"`
 }
 
-const updateInterval = 1 * time.Minute
+const updateInterval = 2 * time.Minute
 var BUILD_VERSION = "dev"
 
 func mustGetenv(key string) string {
