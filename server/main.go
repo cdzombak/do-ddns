@@ -35,13 +35,13 @@ type DomainConfig struct {
 	CreateMissingRecords bool   `json:"createMissingRecords,omitEmpty"` // whether to create missing DNS records, rather than erroring, if no A/AAAA record exists to update
 }
 
-func (c *DomainsConfig) findDomain(domain string) *DomainConfig {
+func (c *DomainsConfig) findDomain(domain string) (DomainConfig, bool) {
 	for _, v := range c.Domains {
 		if v.Domain == domain {
-			return &v
+			return v, true
 		}
 	}
-	return nil
+	return DomainConfig{}, false
 }
 
 // Env describes the application environment (configuration, shared API and cache, etc).
@@ -147,8 +147,8 @@ func indexPost(e *Env, w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	domainConfig := e.DomainsConfig.findDomain(updateRequest.Domain)
-	if domainConfig == nil {
+	domainConfig, ok := e.DomainsConfig.findDomain(updateRequest.Domain)
+	if !ok {
 		return HandlerError{
 			StatusCode:  http.StatusNotFound,
 			PublicError: fmt.Sprintf("domain '%s' is not configured", updateRequest.Domain),
@@ -200,8 +200,8 @@ func dyndnsApiUpdate(e *Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	domain := updateRequest.Hostnames
-	domainConfig := e.DomainsConfig.findDomain(domain)
-	if domainConfig == nil {
+	domainConfig, ok := e.DomainsConfig.findDomain(domain)
+	if !ok {
 		return HandlerError{
 			StatusCode:  http.StatusNotFound,
 			PublicError: fmt.Sprintf("domain '%s' is not configured", domain),
@@ -334,7 +334,7 @@ func ipVersion(ipStr string) (IPVersion, error) {
 	return ipVersion, nil
 }
 
-func performUpdate(e *Env, c *DomainConfig, recordType string, value string) error {
+func performUpdate(e *Env, c DomainConfig, recordType string, value string) error {
 	if e.UpdateCache.Get(c.Domain, recordType) == value {
 		log.Printf("cache indicates that %s record for %s is up to date", recordType, c.Domain)
 		return nil
