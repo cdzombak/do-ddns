@@ -2,7 +2,8 @@
   "domains": [
     {
       "domain": "home.example.org",
-      "secret": "s3cr3t"
+      "secret": "s3cr3t",
+      "createMissingRecords": true
     },
     {
       "domain": "office.example.com",

@@ -29,9 +29,10 @@ type DomainsConfig struct {
 
 // DomainConfig represents the configuration for a single domain.
 type DomainConfig struct {
-	Domain              string `json:"domain"`
-	Secret              string `json:"secret"`
-	AllowClientIPChoice bool   `json:"allowClientIPChoice,omitEmpty"` // whether a client-provided IP can be respected, if using an endpoint which allows the client to choose a specific IP
+	Domain               string `json:"domain"`
+	Secret               string `json:"secret"`
+	AllowClientIPChoice  bool   `json:"allowClientIPChoice,omitEmpty"` // whether a client-provided IP can be respected, if using an endpoint which allows the client to choose a specific IP
+	CreateMissingRecords bool   `json:"createMissingRecords,omitEmpty"` // whether to create missing DNS records, rather than erroring, if no A/AAAA record exists to update
 }
 
 func (c *DomainsConfig) findDomain(domain string) *DomainConfig {
@@ -170,7 +171,7 @@ func indexPost(e *Env, w http.ResponseWriter, r *http.Request) error {
 		recordType = "AAAA"
 	}
 
-	if err = performUpdate(e, updateRequest.Domain, recordType, clientIPStr); err != nil {
+	if err = performUpdate(e, domainConfig, recordType, clientIPStr); err != nil {
 		return err
 	}
 
@@ -280,13 +281,13 @@ func dyndnsApiUpdate(e *Env, w http.ResponseWriter, r *http.Request) error {
 	errs := errset.ErrSet{}
 
 	if updateARecordValue != "" {
-		if err = performUpdate(e, domain, "A", updateARecordValue); err != nil {
+		if err = performUpdate(e, domainConfig, "A", updateARecordValue); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	if updateAAAARecordValue != "" {
-		if err = performUpdate(e, domain, "AAAA", updateAAAARecordValue); err != nil {
+		if err = performUpdate(e, domainConfig, "AAAA", updateAAAARecordValue); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -333,18 +334,18 @@ func ipVersion(ipStr string) (IPVersion, error) {
 	return ipVersion, nil
 }
 
-func performUpdate(e *Env, domain string, recordType string, value string) error {
-	if e.UpdateCache.Get(domain, recordType) == value {
-		log.Printf("cache indicates that %s record for %s is up to date", recordType, domain)
+func performUpdate(e *Env, c *DomainConfig, recordType string, value string) error {
+	if e.UpdateCache.Get(c.Domain, recordType) == value {
+		log.Printf("cache indicates that %s record for %s is up to date", recordType, c.Domain)
 		return nil
 	}
 
-	parts := strings.Split(domain, ".")
+	parts := strings.Split(c.Domain, ".")
 	if len(parts) < 2 {
 		return HandlerError{
 			StatusCode:  http.StatusBadRequest,
 			Err:         nil,
-			PublicError: fmt.Sprintf("'%s' is not a valid domain name", domain),
+			PublicError: fmt.Sprintf("'%s' is not a valid domain name", c.Domain),
 		}
 	}
 	rootDomain := strings.Join(parts[len(parts)-2:], ".")
@@ -355,13 +356,17 @@ func performUpdate(e *Env, domain string, recordType string, value string) error
 		recordName = "@"
 	}
 
-	if err := e.DOAPI.UpdateRecords(rootDomain, recordName, recordType, value); err != nil {
+	err := e.DOAPI.UpdateRecords(rootDomain, recordName, recordType, value)
+	if err == digitalocean.NoMatchingRecordsFoundErr && c.CreateMissingRecords {
+		err = e.DOAPI.CreateRecord(rootDomain, recordName, recordType, value)
+	}
+	if err != nil {
 		return HandlerError{
 			StatusCode: http.StatusInternalServerError,
 			Err:        err,
 		}
 	}
 
-	e.UpdateCache.Set(domain, recordType, value)
+	e.UpdateCache.Set(c.Domain, recordType, value)
 	return nil
 }

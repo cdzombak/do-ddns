@@ -16,6 +16,9 @@ var NoRecordsFoundErr = errors.New("no records found for this domain")
 // NoMatchingRecordsFoundErr indicates that the client failed to find any records for the given domain matching the given record name and type.
 var NoMatchingRecordsFoundErr = errors.New("no records found for this domain with the given name and type")
 
+// InvalidRecordTypeErr indicates that an invalid recor type was specified.
+var InvalidRecordTypeErr = errors.New("invalid record type")
+
 // DNSRecord represents a DNS record in the DigitalOcean API.
 type DNSRecord struct {
 	ID       int64   `json:"id"`
@@ -44,6 +47,18 @@ type DNSRecordsResponse struct {
 			Last     string `json:"last"`
 		} `json:"pages"`
 	} `json:"links"`
+}
+
+// CreateRecordRequest represents a DigitalOcean Create DNS Record request body.
+type CreateRecordRequest struct {
+	Type     string  `json:"type"`
+	Name     string  `json:"name"`
+	Data     string  `json:"data"`
+}
+
+// CreateRecordResponse represents a DigitalOcean Create DNS Record response.
+type CreateRecordResponse struct {
+	DomainRecord DNSRecord `json:"domain_record"`
 }
 
 // GetDomainRecords gets the DNS records of the given domain.
@@ -89,17 +104,17 @@ func (c *APIClient) UpdateRecords(rootDomain string, recordName string, recordTy
 			doRecord.Data = value
 			update, err := json.Marshal(doRecord)
 			if err != nil {
-				return fmt.Errorf("failed to format record: %w", err)
+				return fmt.Errorf("failed to marshal record to JSON: %w", err)
 			}
 
-			request, err := http.NewRequest("PUT",
+			req, err := http.NewRequest("PUT",
 				fmt.Sprintf("%s/domains/%s/records/%d", APIBase, url.PathEscape(rootDomain), doRecord.ID),
 				bytes.NewBuffer(update))
 			if err != nil {
 				return fmt.Errorf("failed to build update request: %w", err)
 			}
 
-			_, err = c.Do(request)
+			_, err = c.Do(req)
 			if err != nil {
 				return fmt.Errorf("update failed: %w", err)
 			}
@@ -107,11 +122,38 @@ func (c *APIClient) UpdateRecords(rootDomain string, recordName string, recordTy
 	}
 
 	if foundRecords == 0 {
-		// TODO(cdzombak): create a record, as required.
-		//                 https://github.com/cdzombak/do-ddns/issues/1
 		return NoMatchingRecordsFoundErr
 	}
 
 	return nil
 }
 
+// CreateRecord creates a DNS record according to the given values. Currently only A and AAAA records are supported.
+func (c *APIClient) CreateRecord(rootDomain string, recordName string, recordType string, value string) error {
+	if recordType != "A" && recordType != "AAAA" {
+		return InvalidRecordTypeErr
+	}
+
+	reqJSON, err := json.Marshal(CreateRecordRequest{
+		Type: recordType,
+		Name: recordName,
+		Data: value,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal request to JSON: %w", err)
+	}
+
+	req, err := http.NewRequest("POST",
+		fmt.Sprintf("%s/domains/%s/records", APIBase, url.PathEscape(rootDomain)),
+		bytes.NewBuffer(reqJSON))
+	if err != nil {
+		return fmt.Errorf("failed to build create request: %w", err)
+	}
+
+	_, err = c.Do(req)
+	if err != nil {
+		return fmt.Errorf("create failed: %w", err)
+	}
+
+	return nil
+}
