@@ -11,7 +11,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"github.com/crewjam/errset"
 	"github.com/gorilla/mux"
@@ -47,6 +50,7 @@ func (c *DomainsConfig) findDomain(domain string) (DomainConfig, bool) {
 // Env describes the application environment (configuration, shared API and cache, etc).
 type Env struct {
 	DomainsConfig *DomainsConfig
+	ConfigLock    sync.RWMutex
 	DOAPI         *digitalocean.APIClient
 	UpdateCache   *DNSUpdateCache
 	Decoder       *schema.Decoder
@@ -113,6 +117,28 @@ func main() {
 		log.Fatalf("couldn't parse config file '%s' as JSON: %s", domainsConfigPath, err.Error())
 	}
 
+	sigUSR2Chan := make(chan os.Signal, 1)
+	signal.Notify(sigUSR2Chan, syscall.SIGUSR2)
+	go func(){
+		for _ = range sigUSR2Chan {
+			log.Println("got SIGUSR2; reloading config file")
+			appEnv.ConfigLock.Lock()
+			configFile, err := ioutil.ReadFile(domainsConfigPath)
+			if err != nil {
+				log.Printf("couldn't read config file '%s': %s", domainsConfigPath, err.Error())
+				log.Println("continuing to run with old config")
+				appEnv.ConfigLock.Unlock()
+				continue
+			}
+			err = json.Unmarshal(configFile, &appEnv.DomainsConfig)
+			if err != nil {
+				log.Printf("couldn't parse config file '%s' as JSON: %s", domainsConfigPath, err.Error())
+				log.Println("continuing to run with old config")
+			}
+			appEnv.ConfigLock.Unlock()
+		}
+	}()
+
 	router := mux.NewRouter().StrictSlash(false)
 	router.Methods("GET").Path("/ping").Handler(Handler{&appEnv, ping})
 	router.Methods("GET").Path("/v3/update").Handler(Handler{&appEnv, dyndnsApiUpdate})
@@ -147,7 +173,9 @@ func indexPost(e *Env, w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	e.ConfigLock.RLock()
 	domainConfig, ok := e.DomainsConfig.findDomain(updateRequest.Domain)
+	e.ConfigLock.RUnlock()
 	if !ok {
 		return HandlerError{
 			StatusCode:  http.StatusNotFound,
@@ -200,7 +228,9 @@ func dyndnsApiUpdate(e *Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	domain := updateRequest.Hostnames
+	e.ConfigLock.RLock()
 	domainConfig, ok := e.DomainsConfig.findDomain(domain)
+	e.ConfigLock.RUnlock()
 	if !ok {
 		return HandlerError{
 			StatusCode:  http.StatusNotFound,
