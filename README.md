@@ -118,6 +118,11 @@ If `allowClientIPChoice` is enabled, and the client's remote address as seen by 
 
 Note that the server does not allow updating multiple domains in one request, though the DynDns API does allow passing a comma-separated list of domains in the `hostname` field. `do-ddns-server` will return an `HTTP 400 Bad Request` in this case.
 
+## Advanced Usage Notes
+
+- Send the server process SIGUSR2 to reload its configuration file in-place.
+- The domain configuration option `createMissingRecords` allows the server to create missing A/AAAA records for the domain as needed.
+
 ## Author
 
 Chris Dzombak, [dzombak.com](https://www.dzombak.com)
