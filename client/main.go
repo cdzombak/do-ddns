@@ -10,17 +10,14 @@ import (
 	"os"
 	"time"
 
+	"do-ddns/server/api"
+
 	"github.com/crewjam/errset"
 	_ "github.com/joho/godotenv/autoload"
 )
 
-type DomainUpdateRequest struct {
-	Domain string `json:"domain"`
-	Secret string `json:"secret"`
-}
-
 const updateInterval = 2 * time.Minute
-var BUILD_VERSION = "dev"
+var BuildVersion = "dev"
 
 func mustGetenv(key string) string {
 	retv := os.Getenv(key)
@@ -32,7 +29,7 @@ func mustGetenv(key string) string {
 
 func update(endpoint string) error {
 	domain := mustGetenv("DDNS_DOMAIN")
-	updateBody := DomainUpdateRequest{
+	updateBody := api.DomainUpdateRequest{
 		Domain: domain,
 		Secret: mustGetenv("DDNS_SECRET"),
 	}
@@ -45,7 +42,7 @@ func update(endpoint string) error {
 		log.Fatalf("failed to build update request: %s", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "org.dzombak.do-ddns-client/"+BUILD_VERSION)
+	req.Header.Set("User-Agent", "org.dzombak.do-ddns-client/"+BuildVersion)
 
 	const updateTimeout = 10 * time.Second
 	client := &http.Client{Timeout: updateTimeout}
