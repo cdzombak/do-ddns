@@ -16,7 +16,7 @@ var NoRecordsFoundErr = errors.New("no records found for this domain")
 // NoMatchingRecordsFoundErr indicates that the client failed to find any records for the given domain matching the given record name and type.
 var NoMatchingRecordsFoundErr = errors.New("no records found for this domain with the given name and type")
 
-// InvalidRecordTypeErr indicates that an invalid recor type was specified.
+// InvalidRecordTypeErr indicates that an invalid record type was specified.
 var InvalidRecordTypeErr = errors.New("invalid record type")
 
 // DNSRecord represents a DNS record in the DigitalOcean API.
