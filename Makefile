@@ -27,7 +27,8 @@ build-client: check-env ## Build client binaries for supported platforms.
 .PHONY: build-server
 build-server: ## Build server binaries for supported platforms.
 	mkdir -p out/linux_amd64
-	env GOOS=linux GOARCH=amd64 go build -o out/linux_amd64/do-ddns-server ./server
+	env GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.BuildVersion=$$VERSION" -o out/darwin_amd64/do-ddns-server ./server
+	env GOOS=linux GOARCH=amd64 go build -ldflags "-X main.BuildVersion=$$VERSION" -o out/linux_amd64/do-ddns-server ./server
 
 .PHONY: build
 build: build-client build-server  ## Build client & server binaries for supported platforms.
