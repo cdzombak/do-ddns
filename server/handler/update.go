@@ -192,8 +192,18 @@ func DynDnsApiUpdate(e *app.Env, w http.ResponseWriter, r *http.Request) error {
 		return errs.ReturnValue()
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	respIP := ""
+	if domainConfig.AllowClientIPChoice {
+		respIP = updateRequest.MyIP
+	} else if updateARecordValue != "" {
+		respIP = updateARecordValue
+	} else if updateAAAARecordValue != "" {
+		respIP = updateAAAARecordValue
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = fmt.Fprintf(w, "good %s", respIP)
+	return err
 }
 
 // remoteAddr returns the client IP address, taking into account the x-forwarded-for header.
