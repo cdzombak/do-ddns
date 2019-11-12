@@ -76,7 +76,13 @@ func runUpdates(ipv4UpdateEndpoint string, ipv6UpdateEndpoint string) {
 
 func main() {
 	var runOneShot = flag.Bool("once", false, "Only perform one update, then exit, rather than running as a service.")
+	var printVersion = flag.Bool("version", false, "Print verison number, then exit.")
 	flag.Parse()
+
+	if *printVersion {
+		fmt.Printf("do-ddns-client version %s\n", BuildVersion)
+		os.Exit(0)
+	}
 
 	ipv4UpdateEndpoint := os.Getenv("DDNS_UPDATE_ENDPOINT_A")
 	ipv6UpdateEndpoint := os.Getenv("DDNS_UPDATE_ENDPOINT_AAAA")

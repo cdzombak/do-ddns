@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +20,17 @@ import (
 	"do-ddns/server/digitalocean"
 )
 
+var BuildVersion = "dev"
+
 func main() {
+	var printVersion = flag.Bool("version", false, "Print verison number, then exit.")
+	flag.Parse()
+
+	if *printVersion {
+		fmt.Printf("do-ddns-server version %s\n", BuildVersion)
+		os.Exit(0)
+	}
+
 	appEnv := app.Env{}
 	appEnv.UpdateCache = &cache.DNSUpdateCache{}
 	appEnv.Decoder = schema.NewDecoder()
