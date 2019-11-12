@@ -75,7 +75,7 @@ func runUpdates(ipv4UpdateEndpoint string, ipv6UpdateEndpoint string) {
 }
 
 func main() {
-	var runAsService = flag.Bool("service", true, "Whether to run the client as a service. If false, only perform one update, then exit.")
+	var runOneShot = flag.Bool("once", false, "Only perform one update, then exit, rather than running as a service.")
 	flag.Parse()
 
 	ipv4UpdateEndpoint := os.Getenv("DDNS_UPDATE_ENDPOINT_A")
@@ -84,12 +84,12 @@ func main() {
 		log.Fatalln("at least one of the environment variables DDNS_UPDATE_ENDPOINT_A and DDNS_UPDATE_ENDPOINT_AAAA must be set")
 	}
 
-	if *runAsService {
+	if *runOneShot {
+		runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
+	} else {
 		runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
 		for _ = range time.Tick(updateInterval) {
 			runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
 		}
-	} else {
-		runUpdates(ipv4UpdateEndpoint, ipv6UpdateEndpoint)
 	}
 }
