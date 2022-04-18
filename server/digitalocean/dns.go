@@ -74,7 +74,7 @@ func (c *APIClient) GetDomainRecords(domain string) ([]DNSRecord, error) {
 		if uri == page.Links.Pages.Last {
 			uri = ""
 		} else {
-			uri = page.Links.Pages.Last
+			uri = page.Links.Pages.Next
 		}
 	}
 	return retv, nil
