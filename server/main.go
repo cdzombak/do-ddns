@@ -54,7 +54,7 @@ func main() {
 
 	sigUSR2Chan := make(chan os.Signal, 1)
 	signal.Notify(sigUSR2Chan, syscall.SIGUSR2)
-	go func(){
+	go func() {
 		for _ = range sigUSR2Chan {
 			log.Println("got SIGUSR2; reloading config file")
 			if err := appEnv.ReadDomainsConfig(domainsConfigPath); err != nil {

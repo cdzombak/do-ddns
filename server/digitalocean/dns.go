@@ -51,9 +51,9 @@ type DNSRecordsResponse struct {
 
 // CreateRecordRequest represents a DigitalOcean Create DNS Record request body.
 type CreateRecordRequest struct {
-	Type     string  `json:"type"`
-	Name     string  `json:"name"`
-	Data     string  `json:"data"`
+	Type string `json:"type"`
+	Name string `json:"name"`
+	Data string `json:"data"`
 }
 
 // CreateRecordResponse represents a DigitalOcean Create DNS Record response.
