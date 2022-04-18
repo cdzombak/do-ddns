@@ -23,7 +23,7 @@ import (
 var BuildVersion = "dev"
 
 func main() {
-	var printVersion = flag.Bool("version", false, "Print verison number, then exit.")
+	var printVersion = flag.Bool("version", false, "Print version number, then exit.")
 	flag.Parse()
 
 	if *printVersion {
