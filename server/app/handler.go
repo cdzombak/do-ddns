@@ -21,6 +21,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("HTTP %d: %s", e.GetStatusCode(), e.Error())
 			http.Error(w, e.GetPublicError(), e.GetStatusCode())
 		default:
+			log.Printf("HTTP 500: %s", e.Error())
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
