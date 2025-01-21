@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This project is no longer maintained.
+
 # DigitalOcean-based Dynamic DNS, with client/server architecture
 
 ## Why?
